@@ -14,6 +14,7 @@ data "aws_ami" "amazon_linux" {
     values = ["hvm"]
   }
 }
+# data source to get latest amazon linux 2 AMI
 
 data "aws_iam_instance_profile" "lab_instance_profile" {
   name = "LabInstanceProfile"
@@ -21,7 +22,7 @@ data "aws_iam_instance_profile" "lab_instance_profile" {
 
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t3.micro"
+  instance_type = "t2.nano"
 
   tags = {
     Name = "Bastion"
@@ -31,3 +32,6 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = false
   iam_instance_profile        = data.aws_iam_instance_profile.lab_instance_profile.name
 }
+
+
+
