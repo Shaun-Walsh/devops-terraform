@@ -23,13 +23,12 @@ source "amazon-ebs" "amazon_linux" {
   ssh_username    = "ec2-user"
   ami_description = "Master image for assignment 2"
   tags = {
-    Name = "Assignment2"
-  Environment = "Dev" }
+    Name = "Assignment2" }
 }
 
 variable "ami_prefix" {
   type    = string
-  default = "swalsh-assignment2"
+  default = "swalsh_assignment2_appserver"
 }
 
 variable "cookie_name" {
