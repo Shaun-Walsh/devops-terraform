@@ -81,7 +81,7 @@ module "asg" {
   update_default_version = true
 
   image_id          = data.aws_ami.latest_swalsh_assignment2_appserver.id
-  instance_type     = "t2.micro"
+  instance_type     = "t2.nano"
   ebs_optimized     = true
   enable_monitoring = true
 
