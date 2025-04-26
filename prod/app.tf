@@ -1,4 +1,3 @@
-# look up AMI id for app server
 data "aws_ami" "latest_swalsh_assignment2_appserver" {
   most_recent = true
 
@@ -14,12 +13,12 @@ module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
   # Application Load Balancer
-  name               = "swalsh"
-  internal           = false
-  load_balancer_type = "application"
+  name                  = "swalsh-alb"
+  internal              = false
+  load_balancer_type    = "application"
   create_security_group = false
-  security_groups = [aws_security_group.alb.id]
-  subnets            = module.vpc.public_subnets
+  security_groups       = [aws_security_group.alb.id]
+  subnets               = module.vpc.public_subnets
 
   enable_deletion_protection = false
 
@@ -27,7 +26,7 @@ module "alb" {
     Name = "swalsh-assignment2-alb"
   }
 }
-resource "aws_alb_target_group" "tg" {
+resource "aws_lb_target_group" "tg" {
   name     = "swalsh-tg"
   port     = 80
   protocol = "HTTP"
@@ -35,11 +34,11 @@ resource "aws_alb_target_group" "tg" {
 
   health_check {
     path                = "/"
-    protocol = "HTTP"
-    port                = "3000"
+    protocol            = "HTTP"
+    port                = "80"
     interval            = 30
     timeout             = 4
-    healthy_threshold  = 3
+    healthy_threshold   = 3
     unhealthy_threshold = 3
     matcher             = "200-299"
   }
@@ -47,7 +46,7 @@ resource "aws_alb_target_group" "tg" {
   tags = {
     Name = "swalsh-assignment2-tg"
   }
-  
+
 }
 resource "aws_lb_listener" "lb_http" {
   load_balancer_arn = module.alb.arn
@@ -55,17 +54,17 @@ resource "aws_lb_listener" "lb_http" {
   protocol          = "HTTP"
 
   default_action {
-    type = "forward"
-    target_group_arn = aws_alb_target_group.tg.arn
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg.arn
   }
-  
+
 }
 
 module "asg" {
   source = "terraform-aws-modules/autoscaling/aws"
 
   # Autoscaling group
-  name = "swalsh"
+  name = "swalsh-app"
 
   min_size                  = 1
   max_size                  = 3
@@ -125,11 +124,11 @@ resource "aws_cloudwatch_metric_alarm" "scale_out" {
   threshold           = 70
   alarm_description   = "Scale out if CPU > 70% for 5 minutes"
   alarm_actions       = [aws_autoscaling_policy.increase.arn]
-  dimensions          = {
+  dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
   }
   actions_enabled = true
-  
+
 }
 
 resource "aws_cloudwatch_metric_alarm" "scale_in" {
@@ -143,9 +142,9 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   threshold           = 30
   alarm_description   = "Scale in if CPU < 30% for 5 minutes"
   alarm_actions       = [aws_autoscaling_policy.decrease.arn]
-  dimensions          = {
+  dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
   }
   actions_enabled = true
-  
+
 }

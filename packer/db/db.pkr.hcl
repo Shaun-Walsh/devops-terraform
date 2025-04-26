@@ -8,7 +8,7 @@ packer {
 }
 
 source "amazon-ebs" "amazon_linux" {
-  ami_name      = "master-db-image-${local.timestamp}"
+  ami_name      = "master_db_image-${local.timestamp}"
   instance_type = "t2.nano"
   region        = "us-east-1"
   source_ami_filter {

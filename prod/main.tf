@@ -1,5 +1,3 @@
-
-# data source to get latest amazon linux 2 AMI
 data "aws_ami" "amazon_linux" {
   most_recent = true
 
