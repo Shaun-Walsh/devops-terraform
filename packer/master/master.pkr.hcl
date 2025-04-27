@@ -23,7 +23,7 @@ source "amazon-ebs" "amazon_linux" {
   ssh_username    = "ec2-user"
   ami_description = "Master image for assignment 2"
   tags = {
-    Name = "Assignment2" }
+    Name = "Assignment2-Master" }
 }
 
 variable "ami_prefix" {
@@ -108,9 +108,6 @@ build {
 
       # Change into the placemark directory
       "cd placemark",
-
-      # Install SSM Agent
-      "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
 
       # Write sensitive data into the .env file inside the placemark directory
       "echo cookie_name=${var.cookie_name} > .env",

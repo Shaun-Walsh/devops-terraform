@@ -12,6 +12,7 @@ data "aws_ami" "master_db_image" {
 resource "aws_instance" "db" {
   ami           = data.aws_ami.master_db_image.id
   instance_type = "t2.nano"
+  key_name = "shaunskey"
 
   tags = {
     Name = "DB"
@@ -26,7 +27,7 @@ output "db_private_ip" {
   value = aws_instance.db.private_ip
 }
 
-# Store the DB endpoiint in SSM Parameter Store
+# Store the DB endpoint in SSM Parameter Store
 resource "aws_ssm_parameter" "db_endpoint" {
   name        = "/assignment2/db_endpoint"
   description = "Database connection string"

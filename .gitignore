@@ -39,3 +39,5 @@ terraform.rc
 
 # Ignore any local environment variables files
 secrets.json
+
+*.pem

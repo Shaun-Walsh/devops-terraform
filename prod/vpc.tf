@@ -79,7 +79,7 @@ resource "aws_security_group_rule" "alb_egress" {
 }
 
 resource "aws_security_group" "app" {
-  name        = "${local.name}-appsg"
+  name        = "${local.name}-app"
   description = "App sgroup"
   vpc_id      = module.vpc.vpc_id
   tags = {
@@ -133,10 +133,10 @@ resource "aws_security_group_rule" "db_ingress" {
   source_security_group_id = aws_security_group.app.id
 }
 
-resource "aws_security_group_rule" "db_bastion" {
+resource "aws_security_group_rule" "db_bastion_ssh" {
   type                     = "ingress"
-  from_port                = 27017
-  to_port                  = 27017
+  from_port                = 22
+  to_port                  = 22
   protocol                 = "tcp"
   security_group_id        = aws_security_group.db.id
   source_security_group_id = aws_security_group.bastion.id

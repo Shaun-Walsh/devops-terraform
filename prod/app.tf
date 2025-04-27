@@ -51,6 +51,13 @@ module "alb" {
       deregistration_delay              = 5
       load_balancing_cross_zone_enabled = true
 
+       # Enable stickiness
+      stickiness = {
+        enabled = true
+        type    = "lb_cookie"
+        cookie_duration = 86400 # 1 day
+      }
+
       # There's nothing to attach here in this definition.
       # The attachment happens in the ASG module below
       create_attachment = false
@@ -83,7 +90,7 @@ module "asg" {
   desired_capacity          = 1
   health_check_type         = "ELB" # Ensure it considers the app health check
   health_check_grace_period = 30
-  vpc_zone_identifier       = module.vpc.public_subnets
+  vpc_zone_identifier       = module.vpc.private_subnets
   security_groups           = [aws_security_group.app.id]
 
   traffic_source_attachments = {
@@ -106,6 +113,7 @@ module "asg" {
   # IAM role & instance profile
   create_iam_instance_profile = false
   iam_instance_profile_name   = data.aws_iam_instance_profile.lab_instance_profile.name
+
 
   tags = {
     Name = "swalsh-assignemnt2-asg"
