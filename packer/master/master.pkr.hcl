@@ -9,11 +9,11 @@ packer {
 
 source "amazon-ebs" "amazon_linux" {
   ami_name      = "${var.ami_prefix}-${local.timestamp}"
-  instance_type = "t2.nano"
+  instance_type = "t2.small"
   region        = "us-east-1"
   source_ami_filter {
     filters = {
-      name                = "al2023-ami-*-x86_64"
+      name                = "al2023-ami-2023.7*-x86_64"
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
@@ -108,6 +108,9 @@ build {
 
       # Change into the placemark directory
       "cd placemark",
+
+      # Install SSM Agent
+      "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
 
       # Write sensitive data into the .env file inside the placemark directory
       "echo cookie_name=${var.cookie_name} > .env",

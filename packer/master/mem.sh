@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Verify cron is running
+CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+echo "$CURRENT_TIME" >> /tmp/cron_log
+
 TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
   -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 
@@ -12,7 +16,6 @@ TCP_CONN=$(netstat -an | wc -l)
 
 TCP_CONN_PORT_80=$(netstat -an | grep ':80' | wc -l)
 
-IO_WAIT=$(iostat | awk 'NR==4 {print $5}')
 
 aws cloudwatch put-metric-data --metric-name memory-usage \
   --dimensions Instance=$INSTANCE_ID \
@@ -25,7 +28,3 @@ aws cloudwatch put-metric-data --metric-name Tcp_connections \
 aws cloudwatch put-metric-data --metric-name TCP_connection_on_port_80 \
   --dimensions Instance=$INSTANCE_ID \
   --namespace "Custom" --value $TCP_CONN_PORT_80
-
-aws cloudwatch put-metric-data --metric-name IO_WAIT \
-  --dimensions Instance=$INSTANCE_ID \
-  --namespace "Custom" --value $IO_WAIT

@@ -6,7 +6,7 @@ Environment=NODE_PORT=3001
 Type=simple
 User=ec2-user
 WorkingDirectory=/home/ec2-user/placemark/src
-ExecStart=/usr/bin/node server.js
+ExecStart=/usr/bin/npm run dev
 Restart=always
 
 [Install]

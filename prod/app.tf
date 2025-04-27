@@ -18,46 +18,58 @@ module "alb" {
   load_balancer_type    = "application"
   create_security_group = false
   security_groups       = [aws_security_group.alb.id]
+  vpc_id                = module.vpc.vpc_id
   subnets               = module.vpc.public_subnets
+
+  listeners = {
+    ex-http-https-redirect = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+    ex-https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = "arn:aws:acm:us-east-1:289428676388:certificate/35ee24d5-b86a-4637-9448-0c5ea0086103" # Create cert in terraform
+
+      forward = {
+        target_group_key = "app"
+      }
+    }
+  }
+
+  target_groups = {
+    app = {
+      backend_protocol                  = "HTTP"
+      name                              = "app"
+      port                              = 3000
+      target_type                       = "instance"
+      deregistration_delay              = 5
+      load_balancing_cross_zone_enabled = true
+
+      # There's nothing to attach here in this definition.
+      # The attachment happens in the ASG module below
+      create_attachment = false
+      health_check = {
+        enabled             = true
+        healthy_threshold   = 2
+        interval            = 30
+        timeout             = 5
+        unhealthy_threshold = 2
+        path                = "/testlb"
+      }
+    }
+  }
 
   enable_deletion_protection = false
 
   tags = {
     Name = "swalsh-assignment2-alb"
   }
-}
-resource "aws_lb_target_group" "tg" {
-  name     = "swalsh-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = module.vpc.vpc_id
-
-  health_check {
-    path                = "/"
-    protocol            = "HTTP"
-    port                = "80"
-    interval            = 30
-    timeout             = 4
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-    matcher             = "200-299"
-  }
-
-  tags = {
-    Name = "swalsh-assignment2-tg"
-  }
-
-}
-resource "aws_lb_listener" "lb_http" {
-  load_balancer_arn = module.alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tg.arn
-  }
-
 }
 
 module "asg" {
@@ -69,20 +81,27 @@ module "asg" {
   min_size                  = 1
   max_size                  = 3
   desired_capacity          = 1
-  health_check_type         = "ELB"
+  health_check_type         = "ELB" # Ensure it considers the app health check
   health_check_grace_period = 30
   vpc_zone_identifier       = module.vpc.public_subnets
   security_groups           = [aws_security_group.app.id]
 
+  traffic_source_attachments = {
+    ex-alb = {
+      traffic_source_identifier = module.alb.target_groups["app"].arn
+      traffic_source_type       = "elbv2" # default
+    }
+  }
 
   # Launch template
   create_launch_template = true
   update_default_version = true
 
   image_id          = data.aws_ami.latest_swalsh_assignment2_appserver.id
-  instance_type     = "t2.nano"
+  instance_type     = "t2.small"
   ebs_optimized     = true
   enable_monitoring = true
+
 
   # IAM role & instance profile
   create_iam_instance_profile = false
@@ -119,10 +138,10 @@ resource "aws_cloudwatch_metric_alarm" "scale_out" {
   evaluation_periods  = 1
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 30
+  period              = 60
   statistic           = "Average"
   threshold           = 70
-  alarm_description   = "Scale out if CPU > 70% for 5 minutes"
+  alarm_description   = "Scale out if CPU > 70% for 5 minute"
   alarm_actions       = [aws_autoscaling_policy.increase.arn]
   dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
@@ -140,7 +159,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   period              = 30
   statistic           = "Average"
   threshold           = 30
-  alarm_description   = "Scale in if CPU < 30% for 5 minutes"
+  alarm_description   = "Scale in if CPU < 30% for 1 minute"
   alarm_actions       = [aws_autoscaling_policy.decrease.arn]
   dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
@@ -148,3 +167,4 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   actions_enabled = true
 
 }
+

@@ -25,3 +25,12 @@ resource "aws_instance" "db" {
 output "db_private_ip" {
   value = aws_instance.db.private_ip
 }
+
+# Store the DB endpoiint in SSM Parameter Store
+resource "aws_ssm_parameter" "db_endpoint" {
+  name        = "/assignment2/db_endpoint"
+  description = "Database connection string"
+  type        = "String"
+  value       = aws_instance.db.private_ip
+  overwrite   = true
+}
