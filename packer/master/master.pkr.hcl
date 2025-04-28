@@ -86,6 +86,11 @@ build {
     destination = "/tmp/placemark.service"
   }
 
+  provisioner "file" {
+    source      = "test.sh"
+    destination = "/tmp/test.sh"
+  }
+
   provisioner "shell" {
     inline = [
       # Update system and install necessary packages
@@ -98,6 +103,9 @@ build {
       "sudo mv /tmp/mem.sh /home/ec2-user/mem.sh",
       "sudo chmod +x /home/ec2-user/mem.sh",
       "sudo chown ec2-user:ec2-user /home/ec2-user/mem.sh",
+      "sudo mv /tmp/test.sh /home/ec2-user/test.sh",
+      "sudo chmod +x /home/ec2-user/test.sh",
+      "sudo chown ec2-user:ec2-user /home/ec2-user/test.sh",
       "echo '*/1 * * * * /home/ec2-user/mem.sh' | sudo crontab -u ec2-user -",
       "sudo mv /tmp/placemark.service /etc/systemd/system/placemark.service",
 

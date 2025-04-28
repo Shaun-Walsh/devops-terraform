@@ -33,5 +33,4 @@ resource "aws_ssm_parameter" "db_endpoint" {
   description = "Database connection string"
   type        = "String"
   value       = aws_instance.db.private_ip
-  overwrite   = true
 }

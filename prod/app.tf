@@ -86,8 +86,8 @@ module "asg" {
   name = "swalsh-app"
 
   min_size                  = 1
-  max_size                  = 3
-  desired_capacity          = 1
+  max_size                  = 5
+  desired_capacity          = 2
   health_check_type         = "ELB" # Ensure it considers the app health check
   health_check_grace_period = 30
   vpc_zone_identifier       = module.vpc.private_subnets
@@ -105,7 +105,7 @@ module "asg" {
   update_default_version = true
 
   image_id          = data.aws_ami.latest_swalsh_assignment2_appserver.id
-  instance_type     = "t2.small"
+  instance_type     = "t2.nano"
   ebs_optimized     = true
   enable_monitoring = true
 
@@ -124,7 +124,7 @@ resource "aws_autoscaling_policy" "increase" {
   name                   = "increase"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 180
   autoscaling_group_name = module.asg.autoscaling_group_name
   policy_type            = "SimpleScaling"
 
@@ -134,7 +134,7 @@ resource "aws_autoscaling_policy" "decrease" {
   name                   = "decrease"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 180
   autoscaling_group_name = module.asg.autoscaling_group_name
   policy_type            = "SimpleScaling"
 
@@ -149,7 +149,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_out" {
   period              = 60
   statistic           = "Average"
   threshold           = 70
-  alarm_description   = "Scale out if CPU > 70% for 5 minute"
+  alarm_description   = "Scale out if CPU > 70% for 60 seconds"
   alarm_actions       = [aws_autoscaling_policy.increase.arn]
   dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
@@ -164,10 +164,10 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   evaluation_periods  = 1
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 30
+  period              = 60
   statistic           = "Average"
   threshold           = 30
-  alarm_description   = "Scale in if CPU < 30% for 1 minute"
+  alarm_description   = "Scale in if CPU < 30% for 1 seconds"
   alarm_actions       = [aws_autoscaling_policy.decrease.arn]
   dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
