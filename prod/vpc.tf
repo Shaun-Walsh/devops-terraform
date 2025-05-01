@@ -1,3 +1,6 @@
+# This file creates the vpc and subnets for the application.
+# It uses the terraform-aws-modules/vpc/aws module to create the VPC and subnets.
+# It also creates the security groups for the application load balancer, application, database, and bastion host.
 provider "aws" {
   region = local.region
 }
@@ -17,12 +20,7 @@ locals {
     GithubOrg  = "Shaun-Walsh"
   }
 }
-
-
-################################################################################
-# VPC Module
-################################################################################
-
+#Create the VPC and subnets
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
@@ -77,7 +75,7 @@ resource "aws_security_group_rule" "alb_egress" {
   security_group_id = aws_security_group.alb.id
   cidr_blocks       = ["0.0.0.0/0"]
 }
-
+# Create security group for the application
 resource "aws_security_group" "app" {
   name        = "${local.name}-app"
   description = "App sgroup"
@@ -114,7 +112,7 @@ resource "aws_security_group_rule" "app_egress" {
   security_group_id = aws_security_group.app.id
   cidr_blocks       = ["0.0.0.0/0"]
 }
-
+# Create security group for the database
 resource "aws_security_group" "db" {
   name        = "${local.name}-db"
   description = "DB mongo sg"
@@ -142,7 +140,7 @@ resource "aws_security_group_rule" "db_bastion_ssh" {
   source_security_group_id = aws_security_group.bastion.id
 
 }
-
+# Create security group for the bastion host
 resource "aws_security_group" "bastion" {
   name        = "${local.name}-bastion"
   description = "Bastion host security group"

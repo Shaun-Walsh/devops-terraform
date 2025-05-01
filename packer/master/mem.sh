@@ -4,11 +4,10 @@
 CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
 echo "$CURRENT_TIME" >> /tmp/cron_log
 
-# Get the instance metadata token
+# Get the instance metadata and id
 TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
   -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 
-# Get the instance ID
 INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
   http://169.254.169.254/latest/meta-data/instance-id)
 
@@ -24,8 +23,10 @@ TCP_CONN_PORT_80=$(netstat -an | grep ':80' | wc -l)
 # Get I/O Wait
 IO_WAIT=$(iostat | awk 'NR==4 {print $5}')
 
+# Get CPU usage
 CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
 
+# Get memory total, used, and free
 MEMORY_TOTAL=$(free -m | awk 'NR==2 {print $2}')
 MEMORY_USED=$(free -m | awk 'NR==2 {print $3}')
 MEMORY_FREE=$(free -m | awk 'NR==2 {print $4}')

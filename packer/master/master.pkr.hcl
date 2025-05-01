@@ -1,3 +1,4 @@
+# This Packer template builds an Amazon Linux 2023 AMI with the necessary
 packer {
   required_plugins {
     amazon = {
@@ -25,12 +26,12 @@ source "amazon-ebs" "amazon_linux" {
   tags = {
     Name = "Assignment2-Master" }
 }
-
+# This block is used to set the AMI name prefix
 variable "ami_prefix" {
   type    = string
   default = "swalsh_assignment2_appserver"
 }
-
+#These are the variables used to set the environment variables for the application
 variable "cookie_name" {
   type        = string
   description = "Cookie name for the application"
@@ -93,13 +94,12 @@ build {
 
   provisioner "shell" {
     inline = [
-      # Update system and install necessary packages
+      # Intalls and starts the cron service, moves the shell scripts to the home directory, and sets permissions
+      # for the scripts. It also sets up a cron job to run the mem.sh script every minute.
       "sudo yum update -y",
       "sudo yum install cronie cronie-anacron -y",
       "sudo systemctl enable crond",
       "sudo systemctl start crond",
-
-      # Move the script and set permissions
       "sudo mv /tmp/mem.sh /home/ec2-user/mem.sh",
       "sudo chmod +x /home/ec2-user/mem.sh",
       "sudo chown ec2-user:ec2-user /home/ec2-user/mem.sh",
@@ -108,15 +108,11 @@ build {
       "sudo chown ec2-user:ec2-user /home/ec2-user/test.sh",
       "echo '*/1 * * * * /home/ec2-user/mem.sh' | sudo crontab -u ec2-user -",
       "sudo mv /tmp/placemark.service /etc/systemd/system/placemark.service",
-
       # Install Node.js, dependencies, and clone the GitHub repository
       "sudo yum install -y nodejs",
       "sudo yum install -y git",
       "git clone https://github.com/Shaun-Walsh/placemark.git",
-
-      # Change into the placemark directory
       "cd placemark",
-
       # Write sensitive data into the .env file inside the placemark directory
       "echo cookie_name=${var.cookie_name} > .env",
       "echo cookie_password=${var.cookie_password} >> .env",
@@ -124,10 +120,7 @@ build {
       "echo cloudinary_name=${var.cloudinary_name} >> .env",
       "echo cloudinary_key=${var.cloudinary_key} >> .env",
       "echo cloudinary_secret=${var.cloudinary_secret} >> .env",
-
-      # Install project dependencies
       "npm install",
-
       "sudo systemctl daemon-reload",
       "sudo systemctl enable placemark.service",
       "sudo systemctl start placemark.service"

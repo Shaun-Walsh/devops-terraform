@@ -1,3 +1,4 @@
+# This file creates the bastion host instance.
 data "aws_iam_instance_profile" "lab_instance_profile" {
   name = "LabInstanceProfile"
 }

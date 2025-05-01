@@ -1,3 +1,6 @@
+# This file contains the main configuration for the application load balancer and
+# autoscaling group. It uses the AWS provider and the terraform-aws-modules/alb/aws
+# and terraform-aws-modules/autoscaling/aws modules to create the necessary resources.
 data "aws_ami" "latest_swalsh_assignment2_appserver" {
   most_recent = true
 
@@ -51,15 +54,13 @@ module "alb" {
       deregistration_delay              = 5
       load_balancing_cross_zone_enabled = true
 
-       # Enable stickiness
+      # Enable stickiness
       stickiness = {
-        enabled = true
-        type    = "lb_cookie"
+        enabled         = true
+        type            = "lb_cookie"
         cookie_duration = 86400 # 1 day
       }
 
-      # There's nothing to attach here in this definition.
-      # The attachment happens in the ASG module below
       create_attachment = false
       health_check = {
         enabled             = true
@@ -88,7 +89,7 @@ module "asg" {
   min_size                  = 1
   max_size                  = 5
   desired_capacity          = 2
-  health_check_type         = "ELB" # Ensure it considers the app health check
+  health_check_type         = "ELB"
   health_check_grace_period = 30
   vpc_zone_identifier       = module.vpc.private_subnets
   security_groups           = [aws_security_group.app.id]
@@ -96,7 +97,7 @@ module "asg" {
   traffic_source_attachments = {
     ex-alb = {
       traffic_source_identifier = module.alb.target_groups["app"].arn
-      traffic_source_type       = "elbv2" # default
+      traffic_source_type       = "elbv2"
     }
   }
 
@@ -119,7 +120,7 @@ module "asg" {
     Name = "swalsh-assignemnt2-asg"
   }
 }
-
+#Scaling policies and alarms
 resource "aws_autoscaling_policy" "increase" {
   name                   = "increase"
   scaling_adjustment     = 1
