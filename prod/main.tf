@@ -1,25 +1,9 @@
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-
-  owners = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-# data source to get latest amazon linux 2 AMI
-
 data "aws_iam_instance_profile" "lab_instance_profile" {
   name = "LabInstanceProfile"
 }
 
 resource "aws_instance" "bastion" {
-  ami           = data.aws_ami.amazon_linux.id
+  ami           = data.aws_ami.latest_swalsh_assignment2_appserver.id
   instance_type = "t2.nano"
 
   tags = {

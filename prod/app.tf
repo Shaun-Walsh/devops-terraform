@@ -167,7 +167,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_in" {
   period              = 60
   statistic           = "Average"
   threshold           = 30
-  alarm_description   = "Scale in if CPU < 30% for 1 seconds"
+  alarm_description   = "Scale in if CPU < 60% for 1 seconds"
   alarm_actions       = [aws_autoscaling_policy.decrease.arn]
   dimensions = {
     AutoScalingGroupName = module.asg.autoscaling_group_name
